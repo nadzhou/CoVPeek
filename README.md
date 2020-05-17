@@ -16,3 +16,7 @@ Thiis tool will do the following:
 # Update 
 ## Incorporating Jupyter Notebook 
 Showing the code in real time is important, so I have added some notebooks to go through the code step by step. Here, I show that the spike protein does indeed show divergence at the 613th position (starting from 0). 
+
+![image](https://user-images.githubusercontent.com/25282805/82142814-8db1b880-9858-11ea-92f1-b433f38b8dd0.png)
+
+This graph clearly shows there is a significant mutation rate at the 613th position, while the others either contain an amino acid or a gap '-' while this specific position contains, as is evident in the notebook, there is occurence of all amino acids in that position. 
