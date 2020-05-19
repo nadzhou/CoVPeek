@@ -1,4 +1,7 @@
 # CoVPeek - proteome divergence visualzation tool
+(Yes, I'm looking for contributions. I think I'm un to something important and would 
+appreciate others' input on this.)
+
 This tool visualizes divergence divergence amongstt different global strains of SARS CoV2. 
 
 
