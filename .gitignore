@@ -3,3 +3,4 @@
 *-checkpoint.ipynb
 .pytest_cache
 *.TAG
+/__pycache__

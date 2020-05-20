@@ -1,12 +1,5 @@
-from Bio.Emboss.Applications import NeedleCommandline
-import subprocess
-import sys
-
-from io import StringIO
-from Bio import SeqIO
 from Bio.Emboss.Applications import NeedleallCommandline
-
-from Bio import AlignIO
+import subprocess
 
 
 
@@ -24,22 +17,21 @@ def emboss_needle(seq_a, seq_b, out_file):
     
     """
     needle_cline = NeedleallCommandline(asequence=seq_a,
-                            bsequence=seq_b, gapopen=10,
-                            outfile=out_file, gapextend=1, verbose=True)
+                                        bsequence=seq_b, 
+                                        outfile=out_file, 
+                                        verbose=True,
+                                        gapextend=1,    
+                                        gapopen=10)
 
 
     cmd = str(needle_cline)
     cmd = cmd.split(" ")
-    #cmd.append("-ossingle")
-    #cmd.append("-sformat1=phylip")
     cmd.append("-aformat=msf")
-    #cmd.append("-ossingle")
     print(cmd)
+
     r = subprocess.Popen(cmd)
-
-    return r.communicate()
-
-
+    if r.communicate(): 
+        print("Global alignment done.")
 
 
 
