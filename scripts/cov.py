@@ -48,8 +48,8 @@ def extract_dna(genome_records, out_file_path):
 
         for protein, i in zip(orf_proteins, range(len(orf_proteins) + 1)):
             translated_pt_record = SeqRecord(Seq(protein), id=f"{num}gen_{i}_orf_{genome_record.id}", 
-                                            description=f"{num}gen_{i}_orf_{genome_record.description}",
-                                            name=f"{num}gen_{i}_orf_{genome_record.name}")
+                                            description=f"{num}gen_{i}{genome_record.description}",
+                                            name=f"{num}gen_{i}{genome_record.name}")
 
             saved_records.append(translated_pt_record)
 
@@ -210,8 +210,8 @@ def main():
 
     emboss_needle(seq_a, seq_b, out_file)
 
-# Now for the identitiy calculation bit. 
-    record = list(AlignIO.parse("gisaid_results/needle.fasta", "msf"))
+Now for the identitiy calculation bit. 
+    record = list(AlignIO.parse("/home/nadzhou/DEVELOPMENT/tmp/gisaid_results/needle.fasta", "msf"))
     result_record = []
 
     print("Intializing trimming of the aligned sequences...")

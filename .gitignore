@@ -4,3 +4,4 @@
 .pytest_cache
 *.TAG
 __pycache__/
+.gitignore
