@@ -131,13 +131,18 @@ def plot_variation(aligned_fasta_file: str):
     plt.title("Variation in the CoV spike protein", fontsize=14)
     plt.ylabel("Variation score", fontsize=14)
 
+    aa_count = []
     for x, y, name in zip(norm_list_len, norm_list, np_seq):
         if y > 5:
             aa_s = sorted(set(name.astype(str)))
+            aa_count = aa_s
+            aa_s = set(aa_s)
             print(aa_s)
             ax.text(x, y, len(aa_s), color='b')
+            return aa_s
     plt.show()
 
+    return aa_count
 
 if __name__ == '__main__':
     main()

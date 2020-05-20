@@ -1,32 +1,22 @@
 #! usr/bin/env python3
 
-from Bio.Align.Applications import ClustalOmegaCommandline
-from Bio.SubsMat import MatrixInfo
 from Bio import SeqIO
-
-import numpy as np
-from pathlib import Path
-import subprocess
-
-
-from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from Bio import AlignIO
+
+import re
+import numpy as np
+from pathlib import Path
+
+from Bio.SeqRecord import SeqRecord
 
 from alignment.sequence import Sequence
 from alignment.vocabulary import Vocabulary
 from alignment.sequencealigner import SimpleScoring, LocalSequenceAligner
 
-
-from Bio import AlignIO
-import tables
-from Bio import Align
-
 from emboss import emboss_needle
-from io import StringIO
-
-import re
 from mafft import mafft
+
 
 def extract_dna(genome_records, out_file_path):
 
@@ -57,7 +47,6 @@ def extract_dna(genome_records, out_file_path):
             records.append(saved_records)
     print("Genome record translated.")
     return records
-
 
 
 
