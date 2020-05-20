@@ -1,3 +1,5 @@
 *.error
 .ipynb_checkpoints
 *-checkpoint.ipynb
+.pytest_cache
+*.TAG
