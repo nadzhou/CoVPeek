@@ -19,6 +19,19 @@ from mafft import mafft
 
 
 def extract_dna(genome_records, out_file_path):
+    """ Extract GISAID genome DNA and then translate each record 
+        into ORFs, and output the list. 
+
+        Args: 
+            genome_records [SeqRecord obj]: GISAID genomes in a SeqRecord 
+
+            out_file_path [str]: Output file path
+
+        
+        Returns: 
+            records [list]: Translated ORFs in a list
+    
+    """
 
     out_file_path.mkdir(parents=True, 
                         exist_ok=True)
@@ -45,33 +58,38 @@ def extract_dna(genome_records, out_file_path):
 
         if len(saved_records) > 2: 
             records.append(saved_records)
+
     print("Genome record translated.")
     return records
 
 
-
-
 def pad_seq(sequence):
-    """ Pad sequence to multiple of 3 with N """
+    """ Pad sequence to multiple of 3 with N 
+
+        Args: 
+            Sequence [str]: Amino acid sequence
+        
+        Returns: 
+            sequence [str]: Padded sequence
+    """
 
     remainder = len(sequence) % 3
     return sequence if remainder == 0 else sequence + Seq('N' * (3 - remainder))
 
 
-
-
 def find_orfs_with_trans(seq, trans_table=1, min_protein_length=100):
-    """Code from the Biopython library for finding open reading frames 
+    """ Code from the Biopython library for finding open reading frames 
 
-    Args: 
-        seq [str]: Protein sequence
-        trans_table [int]: Look-up table 
-        min_protein_length [int]: Minimum protein length
+        Args: 
+            seq [str]: Protein sequence
+            trans_table [int]: Look-up table 
+            min_protein_length [int]: Minimum protein length
 
-    Returns: 
-        answer [list]: List of protein sequences with different reading frames
+        Returns: 
+            answer [list]: List of protein sequences with different reading frames
 
     """
+
     answer = []
     seq = pad_seq(seq)
     seq_len = len(seq)
@@ -100,18 +118,16 @@ def find_orfs_with_trans(seq, trans_table=1, min_protein_length=100):
     return answer
 
 
-
-
 def _identity_calc(array):
-    """Calculate idenity if both sequences have a match my_count it up. 
-    
-    Args: 
-        array [nd array]: Pair of protein sequence characters
+    """ Calculate idenity if both sequences have a match my_count it up. 
+        
+        Args: 
+            array [nd array]: Pair of protein sequence characters
 
-    Returns: 
-        my_count [int]: Hit value, 1 for identical, 0 for else
-        trimmed_seq1 [char]: Character from the first sequence
-        seq2 [char]: Character formt he second sequence
+        Returns: 
+            my_count [int]: Hit value, 1 for identical, 0 for else
+            trimmed_seq1 [char]: Character from the first sequence
+            seq2 [char]: Character formt he second sequence
 
     """
     my_count = 0
@@ -124,17 +140,21 @@ def _identity_calc(array):
     return my_count, seq2
 
 
-
 def percent_id_calc(whole_seq1, whole_seq2, seq_tag, canonical_len):
-    """Calculate percent identity of given two sequences
+    """ Calculate percent identity of given two sequences
     
-    Args: 
-        whole_seq1 [seqrecord object]: First protein sequence
-        whole_seq2 [seqrecord]: Second protein sequence
-        seq_tag [int]: Tag for the protein sequence used 
-                        for writing the file name
-    
+        Args: 
+            whole_seq1 [seqrecord object]: First protein sequence
+
+            whole_seq2 [seqrecord]: Second protein sequence
+
+            seq_tag [int]: Tag for the protein sequence used 
+                            for writing the file name
+        
+        Returns: 
+            write_trimmed_seqs [function]: Write the trimmed seqs to file
     """
+
     np_seq = np.asarray((whole_seq1.seq, whole_seq2.seq))
 
     my_count, trimmed_seq2 = np.apply_along_axis(_identity_calc, 0, np_seq)
@@ -149,21 +169,22 @@ def percent_id_calc(whole_seq1, whole_seq2, seq_tag, canonical_len):
         return write_trimmed_seqs(my_count, trimmed_seq2, whole_seq1, 
                                 whole_seq2, identity_score, seq_tag)
 
-    
 
 def write_trimmed_seqs(my_count, trimmed_seq2, whole_seq1,
                         whole_seq2, identity_score, seq_tag): 
 
-    """Write the sequences that have identity scores greater than 80 percent. 
+    """ Write the sequences that have identity scores greater than 80 percent. 
     
-    Args: 
-        my_count [int]: Sum of identity scores 
-        trimmed_seq1 [str]: First trimmed sequence
-        trimmed_seq2 [str]: Second trimmed sequence
-        whole_trimmed_seq1 [str]: First wholeprotein sequence
-        whole_seq2 [str]: Second protein sequence
+        Args: 
+            my_count [int]: Sum of identity scores 
+            trimmed_seq1 [str]: First trimmed sequence
+            trimmed_seq2 [str]: Second trimmed sequence
+
+            whole_trimmed_seq1 [str]: First wholeprotein sequence
+            whole_seq2 [str]: Second protein sequence
 
     """
+
     if identity_score > 0.7 and len(trimmed_seq2) > 50:
         print(f"hit hit {identity_score}")
 
@@ -173,10 +194,7 @@ def write_trimmed_seqs(my_count, trimmed_seq2, whole_seq1,
                                     description=whole_seq2.description)
 
         return seq_record2
-
-
-
-
+        
 
 def main():
 # Retrieve GISAID genomes and translte according to ORFs

@@ -5,16 +5,16 @@ import subprocess
 
 
 def emboss_needle(seq_a, seq_b, out_file): 
-    """Do a global pairwise alignment using EMBOSS
+    """ Do a global pairwise alignment using EMBOSS
 
-    Args: 
-        seq_a [str]: First sequence 
-        seq_b [str]: second sequence
-        out_file [str]: Output file 
+        Args: 
+            seq_a [str]: First sequence 
+            seq_b [str]: second sequence
+            out_file [str]: Output file 
 
-    Returns: 
-        r [subprocess object]: Execute the commandline command for EMBOSS
-    
+        Returns: 
+            r [subprocess object]: Execute the commandline command for EMBOSS
+        
     """
     needle_cline = NeedleallCommandline(asequence=seq_a,
                                         bsequence=seq_b, 

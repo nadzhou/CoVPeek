@@ -2,6 +2,11 @@ from Bio.Align.Applications import MafftCommandline
 
 
 def mafft(in_file): 
+    """ MAFFT command line for MSA. 
+
+        Args: 
+            in_file [str]: Input file 
+    """
 
     mafft_cline = MafftCommandline(input=in_file)
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
