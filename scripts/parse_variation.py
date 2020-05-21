@@ -158,5 +158,6 @@ def plot_variation(aligned_fasta_file: str):
 
     return aa_count
 
+
 if __name__ == '__main__':
     main()

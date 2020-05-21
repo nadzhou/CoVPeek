@@ -5,3 +5,5 @@
 *.TAG
 __pycache__/
 .gitignore
+.vscode
+.idea
