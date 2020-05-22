@@ -14,6 +14,8 @@ from Bio.SeqRecord import SeqRecord
 from emboss import emboss_needle
 from mafft import mafft
 
+from dataclasses import astuple, dataclass
+
 
 def pad_seq(sequence: Seq) -> Seq:
     """ Pad sequence to multiple of 3 with N
@@ -167,79 +169,94 @@ def trim_sequences(filepath: str) -> List:
     return result_record
 
 
-def percent_id_calc(whole_seq1, whole_seq2, seq_tag, canonical_len):
-    """ Calculate percent identity of given two sequences
-
-        Args:
-            whole_seq1 [seqrecord object]: First protein sequence
-
-            whole_seq2 [seqrecord]: Second protein sequence
-
-            seq_tag [int]: Tag for the protein sequence used
-                            for writing the file name
-
-        Returns:
-            write_trimmed_seqs [function]: Write the trimmed seqs to file
-    """
-
-    np_seq = np.asarray((whole_seq1.seq, whole_seq2.seq))
-
-    my_count, trimmed_seq2 = np.apply_along_axis(_identity_calc, 0, np_seq)
-    my_count = np.asarray(my_count, int)
-
-    if not np.all(my_count == 0):
-        trimmed_seq2 = "".join(item for item in trimmed_seq2.astype(str))
-        identity_score = np.true_divide(sum(my_count), canonical_len)
-
-        return write_trimmed_seqs(my_count, trimmed_seq2, whole_seq1,
-                                  whole_seq2, identity_score, seq_tag)
+@dataclass
+class SeqProfile:
+    while_seq1: "SeqRecord"
+    whole_seq2: "SeqRecord"
+    seq_tag: str
+    canonical_len: int
 
 
-def _identity_calc(array):
-    """ Calculate idenity if both sequences have a match my_count it up.
+class IdenticalSeqSeparator(SeqProfile: SeqProfile): 
+    def __init__(self, SeqProfile): 
+        self.whole_seq1, self.whole_seq2, 
+                        self.seq_tag, 
+                        self.canonical_len = astuple(SeqProfile)
 
-        Args:
-            array [nd array]: Pair of protein sequence characters
+                
+    def percent_id_calc(self):
+        """ Calculate percent identity of given two sequences
 
-        Returns:
-            my_count [int]: Hit value, 1 for identical, 0 for else
-            trimmed_seq1 [char]: Character from the first sequence
-            seq2 [char]: Character formt he second sequence
+            Args:
+                whole_seq1 [seqrecord object]: First protein sequence
 
-    """
-    my_count = 0
-    seq2 = ""
+                whole_seq2 [seqrecord]: Second protein sequence
 
-    if array[0] == array[1] and array[0] != "-":
-        seq2 = array[1]
-        my_count += 1
+                seq_tag [int]: Tag for the protein sequence used
+                                for writing the file name
 
-    return my_count, seq2
+            Returns:
+                write_trimmed_seqs [function]: Write the trimmed seqs to file
+        """
+
+        np_seq = np.asarray((self.whole_seq1.seq, self.whole_seq2.seq))
+
+        my_count, self.trimmed_seq2 = np.apply_along_axis(_identity_calc, 0, np_seq)
+        self.my_count = np.asarray(my_count, int)
 
 
-def write_trimmed_seqs(my_count, trimmed_seq2, whole_seq1,
-                       whole_seq2, identity_score, seq_tag):
-    """ Write the sequences that have identity scores greater than 80 percent.
+    def count_checker(self):     
+        if not np.all(self.my_count == 0):
+            self.trimmed_seq2 = "".join(item for item in trimmed_seq2.astype(str))
+            self.identity_score = np.true_divide(sum(my_count), canonical_len)
 
-        Args:
-            my_count [int]: Sum of identity scores
-            trimmed_seq1 [str]: First trimmed sequence
-            trimmed_seq2 [str]: Second trimmed sequence
+            return self.write_trimmed_seqs()
 
-            whole_trimmed_seq1 [str]: First wholeprotein sequence
-            whole_seq2 [str]: Second protein sequence
+    @staticmethod
+    def _identity_calc(array):
+        """ Calculate idenity if both sequences have a match my_count it up.
 
-    """
+            Args:
+                array [nd array]: Pair of protein sequence characters
 
-    if identity_score > 0.7 and len(trimmed_seq2) > 50:
-        print(f"hit hit {identity_score}")
+            Returns:
+                my_count [int]: Hit value, 1 for identical, 0 for else
+                trimmed_seq1 [char]: Character from the first sequence
+                seq2 [char]: Character formt he second sequence
 
-        seq_record2 = SeqRecord(Seq(trimmed_seq2),
-                                id=whole_seq2.id,
-                                name=whole_seq2.name,
-                                description=whole_seq2.description)
+        """
+        my_count = 0
+        seq2 = ""
 
-        return seq_record2
+        if array[0] == array[1] and array[0] != "-":
+            seq2 = array[1]
+            my_count += 1
+
+        return my_count, seq2
+
+
+    def write_trimmed_seqs(self):
+        """ Write the sequences that have identity scores greater than 80 percent.
+
+            Args:
+                my_count [int]: Sum of identity scores
+                trimmed_seq1 [str]: First trimmed sequence
+                trimmed_seq2 [str]: Second trimmed sequence
+
+                whole_trimmed_seq1 [str]: First wholeprotein sequence
+                whole_seq2 [str]: Second protein sequence
+
+        """
+        try: 
+            if self.identity_score > 0.7 and len(trimmed_seq2) > 50:
+                print(f"hit hit {identity_score}")
+
+                seq_record2 = SeqRecord(Seq(self.trimmed_seq2),
+                                        id=self.whole_seq2.id,
+                                        name=self.whole_seq2.name,
+                                        description=self.whole_seq2.description)
+
+                return seq_record2
 
 
 def write_records_to_file(result_record, filename: str):

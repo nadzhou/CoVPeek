@@ -149,7 +149,7 @@ def main():
 
 
 def print_variable(aa_positions: Dict[int, List[str]], min_score: int = 5):
-    """
+    """ 
         Args:
             aa_positions: Dictionary of positions and aminoacids present in them
             min_score: Minimum variance score, default 5
