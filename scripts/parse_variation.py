@@ -12,13 +12,16 @@ sns.set()
 class DivergenceParser:
     """Parse the globally aligned sequences to look for divergence
     """
+    def __init__(self, sequences: List[List[str]]):
+        """
+        Args:
+            sequences: List of sequences represented by list of aminoacids
+        """
+        self.seqs: List[List[str]] = sequences
+        self.npseqs: np.ndarray = self.seq2np(sequences)
 
-    def __init__(self, sequences):
-        npsequences = self.seq2np(sequences)
-        self.seqs = sequences
-        self.npseqs = npsequences
-
-    def seq2np(self, seq: List[List[str]]) -> np.ndarray:
+    @staticmethod
+    def seq2np(seq: List[List[str]]) -> np.ndarray:
         """"Turn the sequence into numpy S1 array for calculations later.
 
             Args:
@@ -31,7 +34,8 @@ class DivergenceParser:
 
         return np.asarray(seq, dtype='S1')
 
-    def normalize_data(self, ent_list):
+    @staticmethod
+    def normalize_data(ent_list: np.ndarray) -> np.ndarray:
         """ Takes the entropy array and normalizes the data.
 
             Args:
@@ -41,10 +45,11 @@ class DivergenceParser:
                 Normalized list [nd array]: Values between -1 and 1
 
         """
+        normalized = -(ent_list - np.mean(ent_list, axis=0)) / np.std(ent_list, axis=0)
+        return normalized
 
-        return -(ent_list - np.mean(ent_list, axis=0)) / np.std(ent_list, axis=0)
-
-    def _shannon(self, array: np.ndarray) -> np.ndarray:
+    @staticmethod
+    def _shannon(array: np.ndarray) -> np.ndarray:
         """Calculate Shannon Entropy vertically via loop.
 
             Args:
@@ -105,19 +110,32 @@ class DivergenceParser:
         for i, point in a.iteritems():
             ax.text(point['x'] + .02, point['y'], str(point['val']))
 
+    def aminoacids_in_variable_positions(self, minimum_var=5):
+        variation_score = self.conservation_score(normalized=True)
+        positions = {}
+        for index, (variation_score, aminoacids) in enumerate(zip(variation_score, self.npseqs)):
+            if variation_score > minimum_var:
+                sorted_aa = sorted((aminoacids.astype(str)))
+                positions[index + 1] = sorted_aa
+        return positions
+
 
 def main():
-    # Load the aligned FASTA file
+    """
+    Loads the aligned FASTA file and plots the variation score for each AA position
+    """
     aligned_path = "../notebooks/gisaid_results/mafft_aligned.fasta"
     aa_counts = plot_variation(aligned_path)
-    print(aa_counts)
 
+    fig = make_countplot(aa_counts, aa_counts)
+    fig.show()
 
 def retrieve_sequence(aligned_path: str) -> List[List[str]]:
     """Extract the protein sequence from the FASTA file
         Args
             aligned_path: Path to a fasta file with aligned sequences
         Returns
+            seqs: A list of sequences represented by lists of aminoacids
     """
     records = list(SeqIO.parse(aligned_path, "fasta"))
     seqs = [[aa for aa in record] for record in records]
@@ -139,11 +157,23 @@ def plot_variation(aligned_path: str):
     # Call an instance of the class that converts it to ndarray then run through the functions, calculate entropy etc.
     parser = DivergenceParser(sequences)
     norm_list = parser.conservation_score(normalized=True)
+    print("Positions with variation score > 5")
+    variable_positions = parser.aminoacids_in_variable_positions()
+    for position, aminoacids in variable_positions.items():
+        print(f"Position {position}: {dict(Counter(aminoacids))}")
     aa_counts = plot_data(norm_list, parser.npseqs)
     return aa_counts
 
 
-def plot_data(norm_list, np_seq):
+def plot_data(norm_list: np.ndarray, np_seq: np.ndarray) -> List[str]:
+    """
+    Args:
+        norm_list:
+        np_seq:
+
+    Returns:
+        aa_count [list]: Frequency of amino acids at the most divergent position
+    """
     norm_list_len = np.arange(len(norm_list))
 
     # Now plot the data
@@ -154,20 +184,25 @@ def plot_data(norm_list, np_seq):
     plt.title("Variation in the CoV spike protein", fontsize=14)
     plt.ylabel("Variation score", fontsize=14)
 
-    aa_count = []
     # i can change the 0-based index to 1-based position, if needed
-    for index, variation_score, aminoacid in zip(norm_list_len, norm_list, np_seq):
+    for index, variation_score, aminoacids in zip(norm_list_len, norm_list, np_seq):
         if variation_score > 5:
-            aa_s = sorted(set(aminoacid.astype(str)))
-            aa_count = aa_s
-            aa_s = set(aa_s)
-            print(aa_s)
+            sorted_aa = sorted((aminoacids.astype(str)))
+            aa_s = set(sorted_aa)
             ax.text(index, variation_score, len(aa_s), color='b')
-            # it's weird. should it return the sorted set here?
-            return aa_s
     plt.show()
 
-    return aa_count
+
+def make_countplot(aa_count, aa_count2):
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
+
+    sns.countplot(aa_count, ax=ax1)
+    ax1.set_ylabel("Amino acid frequency")
+    ax1.set_title("Amino acid ferquency in different CoV patients")
+
+    sns.countplot(aa_count2, ax=ax2)
+    ax2.set_ylabel("Amino acid frequency")
+    return fig
 
 
 if __name__ == '__main__':
