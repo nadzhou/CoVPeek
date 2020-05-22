@@ -29,17 +29,21 @@ def pad_seq(sequence: Seq) -> Seq:
 
 
 def main():
-    """Retrieve GISAID genomes and translate according to ORFs
+    """1. It takes the GISAID DNA FASTA file and translates it to protein, given the open reading frames.
+    2. The results are written to a file in FASTA format
     """
     translate_genome()
 
     align_sequences_globally()
 
     # Now for the identitiy calculation bit.
-    identity_calculation()
-
-    # Run a MAFFT alignment to pad the sequences into equal length
-    mafft("gisaid_results/trimmed_seqs.fasta")
+    results_record = identity_calculation()
+    results_filename = "gisaid_results/trimmed_seqs.fasta"
+    if results_record:
+        write_records_to_file(results_record, filename=results_filename)
+        # Run a MAFFT alignment to pad the sequences into equal length
+        mafft("gisaid_results/trimmed_seqs.fasta")
+    # After this go to variation_parser.py
 
 
 def translate_genome():
@@ -145,18 +149,14 @@ def align_sequences_globally():
 
 def identity_calculation():
     path_to_needle = "/home/nadzhou/DEVELOPMENT/tmp/gisaid_results/needle.fasta"
-    record = list(AlignIO.parse(path_to_needle, "msf"))
+
     print("Intializing trimming of the aligned sequences...")
-    result_record = trim_sequences(record)
-    if result_record:
-        with open("gisaid_results/trimmed_seqs.fasta", "w") as file:
-            for rec in result_record:
-                SeqIO.write(rec, file, "fasta")
-        print("Trimmed sequences written to file.")
-    # After this go to variation_parser.py
+    result_record = trim_sequences(path_to_needle)
+    return result_record
 
 
-def trim_sequences(record: List) -> List:
+def trim_sequences(filepath: str) -> List:
+    record = list(AlignIO.parse(filepath, "msf"))
     result_record = []
     for rec, num in zip(record[1:], range(len(record[1:]))):
         canonical_ = rec[0]
@@ -242,6 +242,13 @@ def write_trimmed_seqs(my_count, trimmed_seq2, whole_seq1,
                                 description=whole_seq2.description)
 
         return seq_record2
+
+
+def write_records_to_file(result_record, filename: str):
+    with open(filename, "w") as file:
+        for rec in result_record:
+            SeqIO.write(rec, file, "fasta")
+    print("Trimmed sequences written to file.")
 
 
 if __name__ == '__main__':
