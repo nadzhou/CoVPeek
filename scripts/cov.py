@@ -160,101 +160,73 @@ def trim_sequences(filepath: str) -> List:
     result_record = []
     for rec, num in zip(record[1:], range(len(record[1:]))):
         canonical_ = rec[0]
-        canonical_len = len(canonical_.seq)
+        ref_seq_len = len(canonical_.seq)
 
-        result = percent_id_calc(canonical_, rec[1], f"{rec[0].id[:7]}_{num}", canonical_len)
+        result = percent_id_calc(canonical_, rec[1], f"{rec[0].id[:7]}_{num}", ref_seq_len)
 
         if result:
             result_record.append(result)
     return result_record
 
 
-@dataclass
-class SeqProfile:
-    while_seq1: "SeqRecord"
-    whole_seq2: "SeqRecord"
-    seq_tag: str
-    canonical_len: int
 
+class IdenticalSeqSeparator: 
 
-class IdenticalSeqSeparator(SeqProfile: SeqProfile): 
-    def __init__(self, SeqProfile): 
-        self.whole_seq1, self.whole_seq2, 
-                        self.seq_tag, 
-                        self.canonical_len = astuple(SeqProfile)
+    def __init__(self, ref_seq, tar_seq): 
+        self.ref_seq = ref_seq
+        self.tar_seq = tar_seq
+        self.ref_seq_len = len(self.ref_seq)
 
                 
     def percent_id_calc(self):
         """ Calculate percent identity of given two sequences
-
-            Args:
-                whole_seq1 [seqrecord object]: First protein sequence
-
-                whole_seq2 [seqrecord]: Second protein sequence
-
-                seq_tag [int]: Tag for the protein sequence used
-                                for writing the file name
-
-            Returns:
-                write_trimmed_seqs [function]: Write the trimmed seqs to file
         """
 
-        np_seq = np.asarray((self.whole_seq1.seq, self.whole_seq2.seq))
+        np_seq = np.asarray((self.ref_seq.seq, 
+                            self.tar_seq.seq))
 
-        my_count, self.trimmed_seq2 = np.apply_along_axis(_identity_calc, 0, np_seq)
-        self.my_count = np.asarray(my_count, int)
+        identical_aa_freq, trimd_tar_seq = np.apply_along_axis(_identity_calc, 0, np_seq)
+
+        self.identical_aa_freq = identical_aa_freq.astype(np.int64)
+        self.trimd_tar_seq = trimd_tar_seq.astype(np.str)
 
 
     def count_checker(self):     
-        if not np.all(self.my_count == 0):
-            self.trimmed_seq2 = "".join(item for item in trimmed_seq2.astype(str))
-            self.identity_score = np.true_divide(sum(my_count), canonical_len)
+        if not np.all(self.identical_aa_freq == 0):
+            self.trimd_tar_seq = "".join(item for item in trimd_tar_seq)
+            self.identity_score = np.true_divide(sum(identical_aa_freq), 
+                                                        self.ref_seq_len)
 
             return self.write_trimmed_seqs()
 
     @staticmethod
     def _identity_calc(array):
-        """ Calculate idenity if both sequences have a match my_count it up.
+        """ Calculate idenity if both sequences have a match identical_aa_freq it up.
 
             Args:
                 array [nd array]: Pair of protein sequence characters
-
-            Returns:
-                my_count [int]: Hit value, 1 for identical, 0 for else
-                trimmed_seq1 [char]: Character from the first sequence
-                seq2 [char]: Character formt he second sequence
-
         """
-        my_count = 0
+        identical_aa_freq = 0
         seq2 = ""
 
         if array[0] == array[1] and array[0] != "-":
             seq2 = array[1]
-            my_count += 1
+            identical_aa_freq += 1
 
-        return my_count, seq2
+        return identical_aa_freq, seq2
 
 
     def write_trimmed_seqs(self):
         """ Write the sequences that have identity scores greater than 80 percent.
-
-            Args:
-                my_count [int]: Sum of identity scores
-                trimmed_seq1 [str]: First trimmed sequence
-                trimmed_seq2 [str]: Second trimmed sequence
-
-                whole_trimmed_seq1 [str]: First wholeprotein sequence
-                whole_seq2 [str]: Second protein sequence
-
         """
         try: 
-            if self.identity_score > 0.7 and len(trimmed_seq2) > 50:
+            if self.identity_score > 0.7 and len(self.trimd_tar_seq) > 50:
                 print(f"hit hit {identity_score}")
 
-                seq_record2 = SeqRecord(Seq(self.trimmed_seq2),
-                                        id=self.whole_seq2.id,
-                                        name=self.whole_seq2.name,
-                                        description=self.whole_seq2.description)
+                seq_record2 = SeqRecord(Seq(self.trimd_tar_seq),
+                                        id=self.tar_seq.id,
+                                        name=self.tar_seq.name,
+                                        description=self.tar_seq.description)
 
                 return seq_record2
 
