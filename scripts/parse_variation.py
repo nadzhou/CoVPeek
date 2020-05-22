@@ -1,6 +1,8 @@
-from typing import List
+from __future__ import annotations
+from typing import List, Dict
 
 import matplotlib.pyplot as plt
+from matplotlib import figure
 import numpy as np
 import seaborn as sns
 from Bio import SeqIO
@@ -12,16 +14,32 @@ sns.set()
 class DivergenceParser:
     """Parse the globally aligned sequences to look for divergence
     """
-    def __init__(self, sequences: List[List[str]]):
+
+    def __init__(self, sequences: List[List[str]] = None):
         """
         Args:
             sequences: List of sequences represented by list of aminoacids
         """
-        self.seqs: List[List[str]] = sequences
-        self.npseqs: np.ndarray = self.seq2np(sequences)
+        if sequences is None:
+            sequences = []
+        self.npseqs = self._seq2np(sequences)
+        self._conservation_scores = None
+
+    @classmethod
+    def retrieve_sequence(cls, aligned_path: str) -> DivergenceParser:
+        """Extract the protein sequence from the FASTA file
+            Args
+                aligned_path: Path to a fasta file with aligned sequences
+            Returns
+                seqs: A list of sequences represented by lists of aminoacids
+        """
+        records = list(SeqIO.parse(aligned_path, "fasta"))
+        seqs = [[aa for aa in record] for record in records]
+        new_parser = cls(seqs)
+        return new_parser
 
     @staticmethod
-    def seq2np(seq: List[List[str]]) -> np.ndarray:
+    def _seq2np(seq: List[List[str]]) -> np.ndarray:
         """"Turn the sequence into numpy S1 array for calculations later.
 
             Args:
@@ -35,7 +53,7 @@ class DivergenceParser:
         return np.asarray(seq, dtype='S1')
 
     @staticmethod
-    def normalize_data(ent_list: np.ndarray) -> np.ndarray:
+    def _normalize_data(ent_list: np.ndarray) -> np.ndarray:
         """ Takes the entropy array and normalizes the data.
 
             Args:
@@ -68,23 +86,23 @@ class DivergenceParser:
 
         return -np.sum(pA * np.log2(pA))
 
-    def conservation_score(self, normalized: bool):
-        """Calculate the Shannon Entropy vertically
+    def conservation_scores(self) -> np.ndarray:
+        """Calculate the normalized Shannon Entropy vertically
             for each position in the amino acid msa sequence.
-
-            Args:
-                normalized - if conservation scored should be normalized
 
             Returns:
                 np apply array [nd float array]: Calculate conservation
                 scores vertically into a float nd array
             
         """
-        conservation_score = np.apply_along_axis(self._shannon, 0, self.npseqs)
-        if normalized:
-            conservation_score = self.normalize_data(conservation_score)
-        return conservation_score
+        # caching
+        if self._conservation_scores is None:
+            conservation_scores = np.apply_along_axis(self._shannon, 0, self.npseqs)
+            conservation_scores = self._normalize_data(conservation_scores)
+            self._conservation_scores = conservation_scores
+        return self._conservation_scores
 
+    #unused
     def moving_average(self, data, n=3):
         """Calculated the rolling average of teh data
 
@@ -102,6 +120,7 @@ class DivergenceParser:
 
         return avg_data[n - 1:] / n
 
+    #unused
     def label_plot(self, norm_list, norm_list_len, val, ax):
         """Label the amino acids that are diverging from the aligned sequences
         """
@@ -110,8 +129,31 @@ class DivergenceParser:
         for i, point in a.iteritems():
             ax.text(point['x'] + .02, point['y'], str(point['val']))
 
-    def aminoacids_in_variable_positions(self, minimum_var=5):
-        variation_score = self.conservation_score(normalized=True)
+    def plot_variation(self) -> figure:
+        """
+        Returns:
+            fig: Variation score lineplot for a given sequence
+        """
+        scores = self.conservation_scores()
+        aa_positions = np.arange(1, len(scores) + 1)
+        # Now plot the data
+        fig = plt.figure(figsize=(15, 10))
+        ax = fig.add_subplot()
+        sns.lineplot(x=aa_positions, y=scores, color="purple", ax=ax)
+        ax.set_xlabel("Amino acid position", fontsize=14)
+        ax.set_ylabel("Variation score", fontsize=14)
+        ax.set_title("Variation in the CoV spike protein", fontsize=14)
+
+        minimum_labeled_variance = 5
+
+        for position, score, aminoacids in zip(aa_positions, scores, self.npseqs):
+            if score > minimum_labeled_variance:
+                different_aas = set(aminoacids.astype(str))
+                ax.text(position, score, len(different_aas), color='b')
+        return fig
+
+    def aminoacids_in_variable_positions(self, minimum_var=5) -> Dict[int, List[str]]:
+        variation_score = self.conservation_scores()
         positions = {}
         for index, (variation_score, aminoacids) in enumerate(zip(variation_score, self.npseqs)):
             if variation_score > minimum_var:
@@ -122,98 +164,51 @@ class DivergenceParser:
 
 def main():
     """
-    Loads the aligned FASTA file and plots the variation score for each AA position
+    Loads the aligned FASTA file, plots the variation score for each AA position,
+    prints aminoacids in positions with score > 5, and makes a countplot for position 614
     """
     aligned_path = "../notebooks/gisaid_results/mafft_aligned.fasta"
-    aa_counts = plot_variation(aligned_path)
-
-    fig = make_countplot(aa_counts, aa_counts)
-    fig.show()
-
-def retrieve_sequence(aligned_path: str) -> List[List[str]]:
-    """Extract the protein sequence from the FASTA file
-        Args
-            aligned_path: Path to a fasta file with aligned sequences
-        Returns
-            seqs: A list of sequences represented by lists of aminoacids
-    """
-    records = list(SeqIO.parse(aligned_path, "fasta"))
-    seqs = [[aa for aa in record] for record in records]
-    return seqs
-
-
-def plot_variation(aligned_path: str):
-    """Make an instance of the DivergenceParser on a given FASTA file 
-        and then plot the results. 
-
-        Args: 
-            aligned_fasta_file [str]: Address of the FASTA file
-
-        Returns: 
-            aa_count [list]: Frequency of amino acids at the most divergent position
-
-    """
-    sequences = retrieve_sequence(aligned_path)
-    # Call an instance of the class that converts it to ndarray then run through the functions, calculate entropy etc.
-    parser = DivergenceParser(sequences)
-    norm_list = parser.conservation_score(normalized=True)
-    print("Positions with variation score > 5")
+    # Call an instance of the class that converts it to ndarray then run through the functions, calculate entropy etc
+    parser = DivergenceParser.retrieve_sequence(aligned_path)
+    lineplot = parser.plot_variation()
+    lineplot.show()
     variable_positions = parser.aminoacids_in_variable_positions()
-    for position, aminoacids in variable_positions.items():
-        print(f"Position {position}: {dict(Counter(aminoacids))}")
-    aa_counts = plot_data(norm_list, parser.npseqs)
-    return aa_counts
+    print_variable(variable_positions)
+    countplots = make_countplots(variable_positions[614])
+    countplots.show()
 
 
-def plot_data(norm_list: np.ndarray, np_seq: np.ndarray) -> List[str]:
+def print_variable(aa_positions: Dict[int, List[str]], min_score: int = 5):
     """
     Args:
-        norm_list:
-        np_seq:
-
-    Returns:
-        aa_count [list]: Frequency of amino acids at the most divergent position
+        aa_positions: Dictionary of positions and aminoacids present in them
+        min_score: Minimum variance score, default 5
     """
-    norm_list_len = np.arange(len(norm_list))
-
-    # Now plot the data
-    plt.figure(figsize=(15, 10))
-    ax = sns.lineplot(norm_list_len, norm_list, color="purple")
-
-    plt.xlabel("Amino acid position", fontsize=14)
-    plt.title("Variation in the CoV spike protein", fontsize=14)
-    plt.ylabel("Variation score", fontsize=14)
-
-    aa_count = []
-    for x, y, name in zip(norm_list_len, norm_list, np_seq):
-        if y > 5:
-            aa_s = sorted(name.astype(str))
-            aa_count = aa_s
-            aa_s = set(aa_s)
-            print(aa_s)
-            ax.text(x, y, len(aa_s), color='b')
-            return aa_s
-    # i can change the 0-based index to 1-based position, if needed
-    for index, variation_score, aminoacids in zip(norm_list_len, norm_list, np_seq):
-        if variation_score > 5:
-            sorted_aa = sorted((aminoacids.astype(str)))
-            aa_s = set(sorted_aa)
-            ax.text(index, variation_score, len(aa_s), color='b')
-    plt.show()
+    print(f"Positions with variation score > {min_score}")
+    for position, aminoacids in aa_positions.items():
+        print(f"Position {position}: {dict(Counter(aminoacids))}")
 
 
-def make_countplot(aa_count, aa_count2):
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
-
-    sns.countplot(aa_count, ax=ax1)
-    ax1.set_ylabel("Amino acid frequency")
-    ax1.set_title("Amino acid ferquency in different CoV patients")
-
-    sns.countplot(aa_count2, ax=ax2)
-    ax2.set_ylabel("Amino acid frequency")
-    return fig
-    plt.show())
-    return aa_count
+def make_countplots(*aa_in_positions: List[str]) -> figure:
+    """Makes a countplot for each list of aminoacids
+    Args:
+        *aa_in_positions: Variable number of aminoacid lists, plots 1 subplot for each list
+    Returns:
+        axes: A figure with several countplots
+    """
+    numplots = len(aa_in_positions)
+    fig, axes = plt.subplots(numplots, 1, figsize=(12, 5*numplots))
+    fig.suptitle("Amino acid frequency in different CoV patients")
+    if aa_in_positions:
+        # the function returns either a single ax or 2d ndarray of axes
+        if numplots > 1:
+            axes = axes.flat
+        else:
+            axes = [axes]
+        for aa_in_position, ax in zip(aa_in_positions, axes):
+            sns.countplot(aa_in_position, ax=ax)
+            ax.set_ylabel("Amino acid frequency")
+        return fig
 
 
 if __name__ == '__main__':
