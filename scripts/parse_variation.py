@@ -1,3 +1,5 @@
+from typing import List
+
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -11,16 +13,12 @@ class DivergenceParser:
     """Parse the globally aligned sequences to look for divergence
     """
 
-    def retrieve_dna(self, aligned_path):
-        """Extract the protein sequence from the FASTA file
-        """
+    def __init__(self, sequences):
+        npsequences = self.seq2np(sequences)
+        self.seqs = sequences
+        self.npseqs = npsequences
 
-        records = list(SeqIO.parse(aligned_path, "fasta"))
-        seqs = [[x for x in y] for y in records]
-
-        return seqs
-
-    def seq2np(self, seq):
+    def seq2np(self, seq: List[List[str]]) -> np.ndarray:
         """"Turn the sequence into numpy S1 array for calculations later.
 
             Args:
@@ -46,7 +44,7 @@ class DivergenceParser:
 
         return -(ent_list - np.mean(ent_list, axis=0)) / np.std(ent_list, axis=0)
 
-    def _shannon(self, array):
+    def _shannon(self, array: np.ndarray) -> np.ndarray:
         """Calculate Shannon Entropy vertically via loop.
 
             Args:
@@ -65,20 +63,22 @@ class DivergenceParser:
 
         return -np.sum(pA * np.log2(pA))
 
-    def conservation_score(self, np_seq):
+    def conservation_score(self, normalized: bool):
         """Calculate the Shannon Entropy vertically
             for each position in the amino acid msa sequence.
 
             Args:
-                np_seq [Numpy nd array]: Np array of sequences
+                normalized - if conservation scored should be normalized
 
             Returns:
                 np apply array [nd float array]: Calculate conservation
                 scores vertically into a float nd array
             
         """
-
-        return np.apply_along_axis(self._shannon, 0, np_seq)
+        conservation_score = np.apply_along_axis(self._shannon, 0, self.npseqs)
+        if normalized:
+            conservation_score = self.normalize_data(conservation_score)
+        return conservation_score
 
     def moving_average(self, data, n=3):
         """Calculated the rolling average of teh data
@@ -109,10 +109,22 @@ class DivergenceParser:
 def main():
     # Load the aligned FASTA file
     aligned_path = "../notebooks/gisaid_results/mafft_aligned.fasta"
-    plot_variation(aligned_path)
+    aa_counts = plot_variation(aligned_path)
+    print(aa_counts)
 
 
-def plot_variation(aligned_fasta_file: str):
+def retrieve_sequence(aligned_path: str) -> List[List[str]]:
+    """Extract the protein sequence from the FASTA file
+        Args
+            aligned_path: Path to a fasta file with aligned sequences
+        Returns
+    """
+    records = list(SeqIO.parse(aligned_path, "fasta"))
+    seqs = [[aa for aa in record] for record in records]
+    return seqs
+
+
+def plot_variation(aligned_path: str):
     """Make an instance of the DivergenceParser on a given FASTA file 
         and then plot the results. 
 
@@ -123,18 +135,15 @@ def plot_variation(aligned_fasta_file: str):
             aa_count [list]: Frequency of amino acids at the most divergent position
 
     """
-    # Call an instance of the class
-    inst = DivergenceParser()
+    sequences = retrieve_sequence(aligned_path)
+    # Call an instance of the class that converts it to ndarray then run through the functions, calculate entropy etc.
+    parser = DivergenceParser(sequences)
+    norm_list = parser.conservation_score(normalized=True)
+    aa_counts = plot_data(norm_list, parser.npseqs)
+    return aa_counts
 
-    seqs = inst.retrieve_dna(aligned_fasta_file)
 
-    # Convert to nd array then run through
-    # the functions, calculate entropy etc.
-    np_seq = inst.seq2np(seqs)
-
-    ent_list = inst.conservation_score(np_seq)
-    norm_list = inst.normalize_data(ent_list)
-
+def plot_data(norm_list, np_seq):
     norm_list_len = np.arange(len(norm_list))
 
     # Now plot the data
@@ -146,13 +155,15 @@ def plot_variation(aligned_fasta_file: str):
     plt.ylabel("Variation score", fontsize=14)
 
     aa_count = []
-    for x, y, name in zip(norm_list_len, norm_list, np_seq):
-        if y > 5:
-            aa_s = sorted(set(name.astype(str)))
+    # i can change the 0-based index to 1-based position, if needed
+    for index, variation_score, aminoacid in zip(norm_list_len, norm_list, np_seq):
+        if variation_score > 5:
+            aa_s = sorted(set(aminoacid.astype(str)))
             aa_count = aa_s
             aa_s = set(aa_s)
             print(aa_s)
-            ax.text(x, y, len(aa_s), color='b')
+            ax.text(index, variation_score, len(aa_s), color='b')
+            # it's weird. should it return the sorted set here?
             return aa_s
     plt.show()
 
