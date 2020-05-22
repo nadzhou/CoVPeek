@@ -112,10 +112,6 @@ def main():
     plot_variation(aligned_path)
 
 
-def plot_counts(aa_count): 
-    return sns.countplot(aa_count)
-
-
 def plot_variation(aligned_fasta_file: str):
     """Make an instance of the DivergenceParser on a given FASTA file 
         and then plot the results. 
@@ -159,7 +155,8 @@ def plot_variation(aligned_fasta_file: str):
             ax.text(x, y, len(aa_s), color='b')
             return aa_s
 
-    return ax, aa_count
+    plt.show())
+    return aa_count
 
 
 
