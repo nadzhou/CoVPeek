@@ -27,7 +27,7 @@ class DivergenceParser:
 
     @classmethod
     def retrieve_sequence(cls, aligned_path: str) -> DivergenceParser:
-        """Extract the protein sequence from the FASTA file
+        """ Extract the protein sequence from the FASTA file
             Args
                 aligned_path: Path to a fasta file with aligned sequences
             Returns
@@ -40,14 +40,13 @@ class DivergenceParser:
 
     @staticmethod
     def _seq2np(seq: List[List[str]]) -> np.ndarray:
-        """"Turn the sequence into numpy S1 array for calculations later.
+        """ Turn the sequence into numpy S1 array for calculations later.
 
             Args:
                 seq [2d list]: List of lists that contain sequences
 
             Returns:
                 np array [2d np array]: Np array that turns the chars into bytes
-
         """
 
         return np.asarray(seq, dtype='S1')
@@ -61,7 +60,6 @@ class DivergenceParser:
 
             Returns:
                 Normalized list [nd array]: Values between -1 and 1
-
         """
         normalized = -(ent_list - np.mean(ent_list, axis=0)) / np.std(ent_list, axis=0)
         return normalized
@@ -75,7 +73,6 @@ class DivergenceParser:
 
             Returns:
                 entropy [nd float array]: Per column value for each position vertically
-
         """
 
         aa_count = Counter(array)
@@ -93,7 +90,6 @@ class DivergenceParser:
             Returns:
                 np apply array [nd float array]: Calculate conservation
                 scores vertically into a float nd array
-            
         """
         # caching
         if self._conservation_scores is None:
@@ -102,37 +98,11 @@ class DivergenceParser:
             self._conservation_scores = conservation_scores
         return self._conservation_scores
 
-    #unused
-    def moving_average(self, data, n=3):
-        """Calculated the rolling average of teh data
-
-            Args:
-                data [numpy nd array]: Float array of the conservation score calculated
-                n [int]: Rolling average wegith
-
-            Returns:
-                avg_data [numpy nd array]: Float array of rolling average
-
-        """
-
-        avg_data = np.cumsum(data, dtype=float)
-        avg_data[n:] = avg_data[n:] - avg_data[:-n]
-
-        return avg_data[n - 1:] / n
-
-    #unused
-    def label_plot(self, norm_list, norm_list_len, val, ax):
-        """Label the amino acids that are diverging from the aligned sequences
-        """
-
-        a = np.concatenate({'x': norm_list_len, 'y': norm_list, 'val': val}, axis=1)
-        for i, point in a.iteritems():
-            ax.text(point['x'] + .02, point['y'], str(point['val']))
 
     def plot_variation(self) -> figure:
         """
-        Returns:
-            fig: Variation score lineplot for a given sequence
+            Returns:
+                fig: Variation score lineplot for a given sequence
         """
         scores = self.conservation_scores()
         aa_positions = np.arange(1, len(scores) + 1)
@@ -164,8 +134,8 @@ class DivergenceParser:
 
 def main():
     """
-    Loads the aligned FASTA file, plots the variation score for each AA position,
-    prints aminoacids in positions with score > 5, and makes a countplot for position 614
+        Loads the aligned FASTA file, plots the variation score for each AA position,
+        prints aminoacids in positions with score > 5, and makes a countplot for position 614
     """
     aligned_path = "../notebooks/gisaid_results/mafft_aligned.fasta"
     # Call an instance of the class that converts it to ndarray then run through the functions, calculate entropy etc
@@ -180,9 +150,9 @@ def main():
 
 def print_variable(aa_positions: Dict[int, List[str]], min_score: int = 5):
     """
-    Args:
-        aa_positions: Dictionary of positions and aminoacids present in them
-        min_score: Minimum variance score, default 5
+        Args:
+            aa_positions: Dictionary of positions and aminoacids present in them
+            min_score: Minimum variance score, default 5
     """
     print(f"Positions with variation score > {min_score}")
     for position, aminoacids in aa_positions.items():
@@ -190,11 +160,11 @@ def print_variable(aa_positions: Dict[int, List[str]], min_score: int = 5):
 
 
 def make_countplots(*aa_in_positions: List[str]) -> figure:
-    """Makes a countplot for each list of aminoacids
-    Args:
-        *aa_in_positions: Variable number of aminoacid lists, plots 1 subplot for each list
-    Returns:
-        axes: A figure with several countplots
+    """ Makes a countplot for each list of aminoacids
+        Args:
+            *aa_in_positions: Variable number of aminoacid lists, plots 1 subplot for each list
+        Returns:
+            axes: A figure with several countplots
     """
     numplots = len(aa_in_positions)
     fig, axes = plt.subplots(numplots, 1, figsize=(12, 5*numplots))

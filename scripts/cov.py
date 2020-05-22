@@ -29,8 +29,8 @@ def pad_seq(sequence: Seq) -> Seq:
 
 
 def main():
-    """1. It takes the GISAID DNA FASTA file and translates it to protein, given the open reading frames.
-    2. The results are written to a file in FASTA format
+    """ 1. It takes the GISAID DNA FASTA file and translates it to protein, given the open reading frames.
+        2. The results are written to a file in FASTA format
     """
     translate_genome()
 
@@ -71,7 +71,6 @@ def extract_dna(genome_records: List[SeqRecord], out_file_path: Path) -> List[Li
 
         Returns:
             records: Translated ORFs in a list
-
     """
     out_file_path.mkdir(parents=True, exist_ok=True)
     records = []
@@ -111,7 +110,6 @@ def find_orfs_with_trans(seq: Seq, trans_table: int = 1, min_protein_length: int
 
         Returns:
             answer: List of protein sequences with different reading frames
-
     """
     answer = []
     seq = pad_seq(seq)
