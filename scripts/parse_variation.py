@@ -184,6 +184,15 @@ def plot_data(norm_list: np.ndarray, np_seq: np.ndarray) -> List[str]:
     plt.title("Variation in the CoV spike protein", fontsize=14)
     plt.ylabel("Variation score", fontsize=14)
 
+    aa_count = []
+    for x, y, name in zip(norm_list_len, norm_list, np_seq):
+        if y > 5:
+            aa_s = sorted(name.astype(str))
+            aa_count = aa_s
+            aa_s = set(aa_s)
+            print(aa_s)
+            ax.text(x, y, len(aa_s), color='b')
+            return aa_s
     # i can change the 0-based index to 1-based position, if needed
     for index, variation_score, aminoacids in zip(norm_list_len, norm_list, np_seq):
         if variation_score > 5:
@@ -203,6 +212,8 @@ def make_countplot(aa_count, aa_count2):
     sns.countplot(aa_count2, ax=ax2)
     ax2.set_ylabel("Amino acid frequency")
     return fig
+    plt.show())
+    return aa_count
 
 
 if __name__ == '__main__':
