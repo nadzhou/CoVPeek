@@ -32,8 +32,9 @@ class IdenticalSequencesParser:
         """
 
         identical_aa_freq = np.apply_along_axis(
-                                    self._identity_calc, 0, self.np_seq)
-        self.identical_aa_freq = identical_aa_freq.astype(np.int64)
+                                    self._trim_target_seq(), 0, self.np_seq)
+        identical_aa_freq = identical_aa_freq = identical_aa_freq.view(np.uint8)
+        self._trim_target_seq = np.where(identical_aa_freq > 1, 1, 0)
 
 
     def aa_hit_calc(self): 
@@ -43,21 +44,6 @@ class IdenticalSequencesParser:
         trimd_tar_seq = np.apply_along_axis(
                         self._trim_target_seq, 0, self.np_seq)
         self.trimd_tar_seq = trimd_tar_seq.astype(np.str)
-
-
-    @staticmethod
-    def _identity_calc(array) -> np.ndarray:
-        """ Calculate idenity if both sequences have a match identical_aa_freq it up.
-
-            Args:
-                array [nd array]: Pair of protein sequence characters
-        """
-        identical_aa_freq = 0
-
-        if array[0] == array[1] and array[0] != "-":
-            identical_aa_freq += 1
-
-        return identical_aa_freq
 
 
     @staticmethod

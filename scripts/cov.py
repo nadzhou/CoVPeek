@@ -113,10 +113,10 @@ def find_orfs_with_trans(seq: Seq, trans_table: int = 1, min_protein_length: int
 def main():
     """ 1. It takes the GISAID DNA FASTA file and translates it to protein, given the open reading frames.
         2. The results are written to a file in FASTA format
-    # """
-    translate_genome()
+    """
+    # translate_genome()
 
-    align_sequences_globally()
+    # align_sequences_globally()
 
     # Now for the identitiy calculation bit.
     results_record = identity_calculation()
@@ -143,7 +143,6 @@ def translate_genome():
             SeqIO.write(record, file, "fasta")
 
 
-
 def align_sequences_globally():
     seq_a_file = "spike_uniprot.fasta"
     seq_b_file = "gisaid_results/translated.fasta"
@@ -152,8 +151,12 @@ def align_sequences_globally():
 
 
 def identity_calculation() -> List:
-    path_to_needle = "/home/nadzhou/DEVELOPMENT/tmp/gisaid_results/needle.fasta"
+    """ Calculate the identites for the sequences
 
+        Returns: 
+            result_record [list]
+    """
+    path_to_needle = "gisaid_results/needle.fasta"
     print("Intializing trimming of the aligned sequences...")
     result_record = trim_sequences(path_to_needle)
     return result_record
