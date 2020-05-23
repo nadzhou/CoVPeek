@@ -2,7 +2,9 @@ import numpy as np
 from pathlib import Path
 
 from Bio.SeqRecord import SeqRecord
+from Bio import AlignIO
 
+from Bio.Seq import Seq
 
 class IdenticalSequencesParser: 
     """ Match reference sequence to target and calculate identity then write to file
@@ -13,10 +15,10 @@ class IdenticalSequencesParser:
         self.tar_seq = tar_seq
         self.ref_seq_len = len(self.ref_seq)
         self.np_seq = self.seqs2np()
+        self._highly_identical_seqs = None
 
 
-    @staticmethod
-    def seqs2np() -> np.ndarray:
+    def seqs2np(self) -> np.ndarray:
         """ Turn the sequence into numpy S1 array for calculations later.
 
             Returns:
@@ -30,7 +32,7 @@ class IdenticalSequencesParser:
         """
 
         identical_aa_freq = np.apply_along_axis(
-                                    _identity_calc, 0, self.np_seq)
+                                    self._identity_calc, 0, self.np_seq)
         self.identical_aa_freq = identical_aa_freq.astype(np.int64)
 
 
@@ -39,7 +41,7 @@ class IdenticalSequencesParser:
             to reference sequence
         """
         trimd_tar_seq = np.apply_along_axis(
-                        _trim_target_seq, 0, self.np_seq)
+                        self._trim_target_seq, 0, self.np_seq)
         self.trimd_tar_seq = trimd_tar_seq.astype(np.str)
 
 
@@ -70,7 +72,7 @@ class IdenticalSequencesParser:
         if array[0] == array[1] and array[0] != "-":
             hit = array[1]
 
-        return identical_aa_freq, hit
+        return hit
 
 
     def count_checker(self):
@@ -78,9 +80,9 @@ class IdenticalSequencesParser:
             and length, if it does, write the sequences to file. 
         """    
         if not np.all(self.identical_aa_freq == 0):
-            self.trimd_tar_seq = "".join(item for item in trimd_tar_seq)
+            self.trimd_tar_seq = "".join(item for item in self.trimd_tar_seq)
 
-            self.identity_score = np.true_divide(sum(identical_aa_freq), 
+            self.identity_score = np.true_divide(sum(self.identical_aa_freq), 
                                                         self.ref_seq_len)
 
             return self.seq2record()
@@ -89,14 +91,26 @@ class IdenticalSequencesParser:
     def seq2record(self) -> SeqRecord:
         """ Write the sequences that have identity scores greater than 80 percent.
         """
-        try: 
-            if self.identity_score > 0.7 and len(self.trimd_tar_seq) > 50:
-                print(f"hit hit {identity_score}")
 
-                target_seq_record = SeqRecord(Seq(self.trimd_tar_seq),
-                                        id=self.tar_seq.id,
-                                        name=self.tar_seq.name,
-                                        description=self.tar_seq.description)
+        if self.identity_score > 0.7 and len(self.trimd_tar_seq) > 50:
+            print(f"hit hit {self.identity_score}")
 
-                return target_seq_record
+            target_seq_record = SeqRecord(Seq(self.trimd_tar_seq),
+                                    id=self.tar_seq.id,
+                                    name=self.tar_seq.name,
+                                    description=self.tar_seq.description)
 
+            return target_seq_record
+
+    def highly_identical_seqs(self): 
+        """ Calculate identity and trim before giving out SeqRecord as output
+
+            Returns: 
+                _highly_identical_seqs [SeqRecord]
+        """
+        if self._highly_identical_seqs == None: 
+            self.identical_freq_calc()
+            self.aa_hit_calc()         
+            self._highly_identical_seqs = self.count_checker()
+
+        return self._highly_identical_seqs

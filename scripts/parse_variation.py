@@ -84,7 +84,7 @@ class DivergenceParser:
         return -np.sum(pA * np.log2(pA))
 
     def conservation_scores(self) -> np.ndarray:
-        """Calculate the normalized Shannon Entropy vertically
+        """ Calculate the normalized Shannon Entropy vertically
             for each position in the amino acid msa sequence.
 
             Returns:
@@ -148,21 +148,13 @@ def main():
     countplots.show()
 
 
-def print_variable(aa_positions: Dict[int, List[str]], min_score: int = 5):
-    """ 
-        Args:
-            aa_positions: Dictionary of positions and aminoacids present in them
-            min_score: Minimum variance score, default 5
-    """
-    print(f"Positions with variation score > {min_score}")
-    for position, aminoacids in aa_positions.items():
-        print(f"Position {position}: {dict(Counter(aminoacids))}")
-
-
 def make_countplots(*aa_in_positions: List[str]) -> figure:
     """ Makes a countplot for each list of aminoacids
+
         Args:
-            *aa_in_positions: Variable number of aminoacid lists, plots 1 subplot for each list
+            *aa_in_positions: Variable number of aminoacid 
+            lists, plots 1 subplot for each list
+
         Returns:
             axes: A figure with several countplots
     """
