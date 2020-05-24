@@ -57,17 +57,17 @@ def extract_dna(genome_records: List[SeqRecord], out_file_path: Path) -> List[Li
     return records
 
 
-def pad_seq(sequence: Seq) -> Seq:
-    """ Pad sequence to multiple of 3 with N
+def pad_seq(seq: Seq) -> Seq:
+    """ Pad seq to multiple of 3 with N
 
         Args:
-            Sequence [str]: Amino acid sequence
+            seq [str]: Amino acid seq
 
         Returns:
-            sequence [str]: Padded sequence
+            seq [str]: Padded seq
     """
-    remainder = len(sequence) % 3
-    return sequence if remainder == 0 else sequence + Seq('N' * (3 - remainder))
+    remainder = len(seq) % 3
+    return seq if remainder == 0 else seq + Seq('N' * (3 - remainder))
 
 
 
@@ -75,12 +75,12 @@ def find_orfs_with_trans(seq: Seq, trans_table: int = 1, min_protein_length: int
     """ Code from the Biopython library for finding open reading frames
 
         Args:
-            seq: Protein sequence
+            seq: Protein seq
             trans_table: Look-up table
             min_protein_length: Minimum protein length
 
         Returns:
-            answer: List of protein sequences with different reading frames
+            answer: List of protein seqs with different reading frames
     """
     answer = []
     seq = pad_seq(seq)
@@ -116,15 +116,15 @@ def main():
     """
     # translate_genome()
 
-    # align_sequences_globally()
+    # align_seqs_globally()
 
     # Now for the identitiy calculation bit.
     results_record = identity_calculation()
     results_filename = "gisaid_results/trimmed_seqs.fasta"
     if results_record:
         write_records_to_file(results_record, filename=results_filename)
-        # Run a MAFFT alignment to pad the sequences into equal length
-        mafft("gisaid_results/trimmed_seqs.fasta")
+        # Run a MAFFT alignment to pad the seqs into equal length
+    mafft("gisaid_results/trimmed_seqs.fasta")
     # After this go to variation_parser.py
 
 
@@ -143,33 +143,34 @@ def translate_genome():
             SeqIO.write(record, file, "fasta")
 
 
-def align_sequences_globally():
+def align_seqs_globally():
     seq_a_file = "spike_uniprot.fasta"
-    seq_b_file = "gisaid_results/translated.fasta"
     out_file = "gisaid_results/needle.fasta"
+
+    seq_b_file = "gisaid_results/translated.fasta"
     emboss_needle(seq_a_file, seq_b_file, out_file)
 
 
 def identity_calculation() -> List:
-    """ Calculate the identites for the sequences
+    """ Calculate the identites for the seqs
 
         Returns: 
             result_record [list]
     """
-    path_to_needle = "gisaid_results/needle.fasta"
-    print("Intializing trimming of the aligned sequences...")
-    result_record = trim_sequences(path_to_needle)
+    path_to_needle = "/home/nadzhou/DEVELOPMENT/tmp/gisaid_results/needle.fasta"
+    print("Intializing trimming of the aligned seqs...")
+    result_record = trim_seqs(path_to_needle)
     return result_record
 
 
-def trim_sequences(filepath: str) -> List:
+def trim_seqs(filepath: str) -> List:
     """ Parse the Needle file and look for highly identical matches
 
         Args: 
             filepath [str]: File path
 
         Returns: 
-            result_record [list]: List of records of best matching sequences
+            result_record [list]: List of records of best matching seqs
     """
     needle_record = list(AlignIO.parse(filepath, "msf"))
 
@@ -177,12 +178,14 @@ def trim_sequences(filepath: str) -> List:
 
     for rec in needle_record[1:]: 
         reference_seq = rec[0]
+
         seq_parser = IdenticalSequencesParser(reference_seq, rec[1])
 
         result = seq_parser.highly_identical_seqs()
 
         if result:
             result_record.append(result)
+
     return result_record
 
 
@@ -195,8 +198,10 @@ def write_records_to_file(result_record: List, filename: str):
     """ 
     with open(filename, "w") as file:
         for rec in result_record:
+
             SeqIO.write(rec, file, "fasta")
-    print("Trimmed sequences written to file.")
+
+    print("Trimmed seqs written to file.")
 
 
 if __name__ == '__main__':
