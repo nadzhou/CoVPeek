@@ -139,7 +139,7 @@ def main():
         Loads the aligned FASTA file, plots the variation score for each AA position,
         prints aminoacids in positions with score > 5, and makes a countplot for position 614
     """
-    aligned_path = "gisaid_results/aligned.fasta"
+    aligned_path = "/home/nadzhou/SEQs/gisaid_results/aligned.fasta"
     # Call an instance of the class that converts it to ndarray then run through the functions, calculate entropy etc
     parser = DivergenceParser.retrieve_sequence(aligned_path)
     lineplot = parser.plot_variation()
