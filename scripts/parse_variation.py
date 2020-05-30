@@ -139,19 +139,19 @@ def main():
         Loads the aligned FASTA file, plots the variation score for each AA position,
         prints aminoacids in positions with score > 5, and makes a countplot for position 614
     """
-    aligned_path = "/home/nadzhou/SEQs/gisaid_results/meh_aligned.fasta"
+    aligned_path = "/home/nadzhou/Desktop//6x2c/aligned_seq.fasta"
     # Call an instance of the class that converts it to ndarray then run through the functions, calculate entropy etc
     parser = DivergenceParser.retrieve_sequence(aligned_path)
     lineplot = parser.plot_variation()
     #plt.show()
     variable_positions = parser.aminoacids_in_variable_positions()
     print_variable(variable_positions)
-    countplots = make_countplots(variable_positions[614])
+    # countplots = make_countplots(variable_positions[614])
     plt.show()
 
 
 def print_variable(aa_positions: Dict[int, List[str]], min_score: int = 5):
-    """
+    """ Print amino acid and their counts at the specific position 
         Args:
             aa_positions: Dictionary of positions and aminoacids present in them
             min_score: Minimum variance score, default 5
