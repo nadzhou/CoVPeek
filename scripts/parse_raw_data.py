@@ -22,6 +22,7 @@ def parse_arguments(parser=None):
     
     if not parser: 
         parser = ap.ArgumentParser()
+
     parser.add_argument("cov_genome_path", help="Path to the CoV reference genome")
     parser.add_argument("uniprot_refseq_path", help="Path to the UniProt canonical protein")
     args = parser.parse_args()
@@ -126,18 +127,23 @@ def main():
     """
 
     parser = parse_arguments()
-    emboss_out_file = "/home/nadzhou/DEVELOPMENT/tmp/gisaid_results/needle.fasta"
-    translate_genome(str(parser.cov_genome_path))
+    emboss_out_file = "../operations/gisaid_results/needle.fasta"
+    #translate_genome(str(parser.cov_genome_path))
     
-    emboss_needle(str(parser.cov_genome_path), str(parser.uniprot_refseq_path), emboss_out_file)
-    # Now for the identitiy calculation bit.
+    emboss_needle("../operations/gisaid_results/translated.fasta", 
+                    f"{str(parser.uniprot_refseq_path)}", 
+                    emboss_out_file)
+    #Now for the identitiy calculation bit.
     results_record = identity_calculation(emboss_out_file)
-    results_filename = "gisaid_results/trimmed_seqs.fasta"
+    results_filename = "../operations/gisaid_results/trimmed_seqs.fasta"
+
     if results_record:
         write_records_to_file(results_record, filename=results_filename)
         # Run a MAFFT alignment to pad the seqs into equal length
-    mafft("gisaid_results/trimmed_seqs.fasta")
-    # After this go to variation_parser.py
+        mafft("../operations/gisaid_results/trimmed_seqs.fasta")
+    # After this go to variation_parser.
+    else:   
+        print("No hits found")
 
 
 def translate_genome(genome_path):
@@ -146,11 +152,19 @@ def translate_genome(genome_path):
     # unused variable, probably needs to be deleted
     genome_record = list(SeqIO.parse(genome_path, "fasta"))
     # path is relative to scripts folder here, needs to be different in notebooks
-    gisaid_results_path = Path("gisaid_results/")
+    gisaid_results_path = Path("../operations/gisaid_results/")
     results = extract_dna(genome_record, gisaid_results_path)
-    with open(gisaid_results_path / "genome_translated.fasta", "w") as file:
+    with open(gisaid_results_path / "translated.fasta", "w") as file:
         for record in results:
             SeqIO.write(record, file, "fasta")
+
+
+def align_seqs_globally():
+    seq_a_file = "spike_uniprot.fasta"
+    out_file = "gisaid_results/needle.fasta"
+
+    seq_b_file = "gisaid_results/translated.fasta"
+    emboss_needle(seq_a_file, seq_b_file, out_file)
 
 
 def identity_calculation(path_to_needle: str) -> List:
@@ -159,6 +173,7 @@ def identity_calculation(path_to_needle: str) -> List:
         Returns: 
             result_record [list]
     """
+     
     print("Intializing trimming of the aligned seqs...")
     result_record = trim_seqs(path_to_needle)
     return result_record
