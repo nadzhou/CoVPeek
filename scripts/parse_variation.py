@@ -78,11 +78,11 @@ class DivergenceParser:
         """
 
         aa_count = Counter(array)
-
         pA = 1
-        for k, v in aa_count.items():
-            pA *= (v / 21)
-
+        total_aminoacids = 20
+        for aminoacid, count in aa_count.items():
+            # and +1 for deletions
+            pA *= (count / total_aminoacids + 1)
         return -np.sum(pA * np.log2(pA))
 
     def conservation_scores(self) -> np.ndarray:
@@ -120,17 +120,19 @@ class DivergenceParser:
 
         for position, score, aminoacids in zip(aa_positions, scores, self.npseqs):
             if score > minimum_labeled_variance:
-                different_aas = set(aminoacids.astype(str))
+                aminoacids = self.npseqs[:, position-1].astype(str)
+                different_aas = set(aminoacids)
                 ax.text(position, score, len(different_aas), color='b')
         return fig
 
     def aminoacids_in_variable_positions(self, minimum_var=5) -> Dict[int, List[str]]:
-        variation_score = self.conservation_scores()
+        variation_scores = self.conservation_scores()
         positions = {}
-        for index, (variation_score, aminoacids) in enumerate(zip(variation_score, self.npseqs)):
-            if variation_score > minimum_var:
-                sorted_aa = sorted((aminoacids.astype(str)))
-                positions[index + 1] = sorted_aa
+        assert len(variation_scores) == self.npseqs.shape[1]
+        for i, score in enumerate(variation_scores):
+            if score > minimum_var:
+                aminoacids = self.npseqs[:, i].astype(str)
+                positions[i + 1] = sorted(aminoacids)
         return positions
 
 
