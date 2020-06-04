@@ -56,8 +56,8 @@ class DivergenceParser:
         return np.asarray(seq, dtype='S1')
 
     @staticmethod
-    def _normalize_data(ent_list: np.ndarray) -> np.ndarray:
-        """ Takes the entropy array and normalizes the data.
+    def standardize_data(ent_list: np.ndarray) -> np.ndarray:
+        """ Takes the entropy array and standardize the data.
 
             Args:
                 ent_list [Nd array]: Entropy float array
@@ -65,8 +65,8 @@ class DivergenceParser:
             Returns:
                 Normalized list [nd array]: Values between -1 and 1
         """
-        normalized = -(ent_list - np.mean(ent_list, axis=0)) / np.std(ent_list, axis=0)
-        return normalized
+        return -(ent_list - np.mean(ent_list, axis=0)) / np.std(ent_list, axis=0)
+         
 
     @staticmethod
     def _shannon(array: np.ndarray) -> np.ndarray:
@@ -98,7 +98,7 @@ class DivergenceParser:
         # caching
         if self._conservation_scores is None:
             conservation_scores = np.apply_along_axis(self._shannon, 0, self.npseqs)
-            conservation_scores = self._normalize_data(conservation_scores)
+            conservation_scores = self.standardize_data(conservation_scores)
             print(conservation_scores[614])
 
             self._conservation_scores = conservation_scores
