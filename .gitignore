@@ -9,4 +9,5 @@ __pycache__/
 .idea
 .cache
 *.fasta
+/operation/
 localdata

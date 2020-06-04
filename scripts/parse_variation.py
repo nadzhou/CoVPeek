@@ -3,6 +3,7 @@ from typing import List, Dict
 
 import matplotlib.pyplot as plt
 from matplotlib import figure
+
 import numpy as np
 import seaborn as sns
 from Bio import SeqIO
