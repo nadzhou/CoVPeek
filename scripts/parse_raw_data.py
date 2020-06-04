@@ -29,6 +29,13 @@ def parse_arguments(parser=None):
 
     return args
 
+def remove_non_chars_from_seq(seq: str) -> str: 
+    return Seq(re.sub(r'(\W)', '', str(seq)))
+
+def find_patient_country(genome_id): 
+    return str((re.findall(f'19/(\w*)/', genome_id))).strip("[]'")
+
+
 def extract_dna(genome_records: List[SeqRecord], out_file_path: Path) -> List[List[SeqRecord]]:
     """ Extract GISAID genome DNA and then translate each record
         into ORFs, and output the list.
@@ -46,18 +53,24 @@ def extract_dna(genome_records: List[SeqRecord], out_file_path: Path) -> List[Li
 
     print("Initiating translation...")
 
+    
     for genome_record, num in zip(genome_records,
                                   range(len(genome_records) + 1)):
 
-        genome_record.seq = Seq(re.sub(r'(\W)', '', str(genome_record.seq)))
+        genome_record.seq = remove_non_chars_from_seq(genome_record.seq)
 
         saved_records = []
+
         orf_proteins = find_orfs_with_trans(genome_record.seq)
+        patient_country = find_patient_country(genome_record.id)
+
+        print(patient_country)
 
         for protein, i in zip(orf_proteins, range(len(orf_proteins) + 1)):
-            translated_pt_record = SeqRecord(Seq(protein), id=f"{num}gen_{i}_orf_{genome_record.id}",
-                                             description=f"{num}gen_{i}{genome_record.description}",
-                                             name=f"{num}gen_{i}{genome_record.name}")
+            translated_pt_record = SeqRecord(Seq(protein), 
+                                             id=f"{num}-{i}-{patient_country}",
+                                             name=f"{num}-{i}-{patient_country}",
+                                             description=f"{num}-{i}-{patient_country}")
 
             saved_records.append(translated_pt_record)
 
@@ -96,7 +109,6 @@ def find_orfs_with_trans(seq: Seq, trans_table: int = 1, min_protein_length: int
     answer = []
     seq = pad_seq(seq)
     seq_len = len(seq)
-    print(seq_len)
 
     for strand, nuc in [(+1, seq), (-1, seq.reverse_complement())]:
         for frame in range(3):
@@ -128,7 +140,7 @@ def main():
 
     parser = parse_arguments()
     emboss_out_file = "../operations/gisaid_results/needle.fasta"
-    #translate_genome(str(parser.cov_genome_path))
+    translate_genome(str(parser.cov_genome_path))
     
     emboss_needle("../operations/gisaid_results/translated.fasta", 
                     f"{str(parser.uniprot_refseq_path)}", 
