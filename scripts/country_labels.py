@@ -49,7 +49,7 @@ def variation_counts_at_position(records_by_country: Dict[str, List[SeqRecord]],
 
 def main():
     # we store aligned data in non-shared folder
-    seq_path = "../localdata/aligned.fasta"
+    seq_path = "../operations/gisaid_results/aligned.fasta"
     records = load_data(seq_path)
     country_dict = seq_records_for_country(records)
 

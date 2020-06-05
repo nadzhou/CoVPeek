@@ -81,9 +81,9 @@ class IdenticalSequencesParser:
             print(f"hit hit {self.identity_score}")
 
             target_seq_record = SeqRecord(Seq(self.trimd_tar_seq),
-                                    id=self.tar_seq.id,
-                                    name=self.tar_seq.name,
-                                    description=self.tar_seq.description)
+                                            id=self.tar_seq.id,
+                                            name=self.tar_seq.name,
+                                            description=self.tar_seq.description)
 
             return target_seq_record
 

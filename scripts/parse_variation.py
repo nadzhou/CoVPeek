@@ -82,9 +82,10 @@ class DivergenceParser:
         aa_count = Counter(array)
         pA = 1
         total_aminoacids = sum(aa_count.values())
-        for aminoacid, count in aa_count.items():
-            # and +1 for deletions
-            pA *= (count / total_aminoacids + 1)
+
+        for _, count in aa_count.items():
+            pA *= (count / total_aminoacids)
+            
         return -np.sum(pA * np.log2(pA))
 
     def conservation_scores(self) -> np.ndarray:
@@ -145,7 +146,7 @@ def main():
         Loads the aligned FASTA file, plots the variation score for each AA position,
         prints aminoacids in positions with score > 5, and makes a countplot for position 614
     """
-    aligned_path = "aligned.fasta"
+    aligned_path = "../operations/gisaid_results/aligned.fasta"
     # Call an instance of the class that converts it to ndarray then run through the functions, calculate entropy etc
     parser = DivergenceParser.retrieve_sequence(aligned_path)
     lineplot = parser.plot_variation()

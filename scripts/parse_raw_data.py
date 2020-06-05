@@ -140,12 +140,12 @@ def main():
 
     parser = parse_arguments()
     emboss_out_file = "../operations/gisaid_results/needle.fasta"
-    translate_genome(str(parser.cov_genome_path))
+    #translate_genome(str(parser.cov_genome_path))
     
     emboss_needle("../operations/gisaid_results/translated.fasta", 
                     f"{str(parser.uniprot_refseq_path)}", 
                     emboss_out_file)
-    #Now for the identitiy calculation bit.
+    # Now for the identitiy calculation bit.
     results_record = identity_calculation(emboss_out_file)
     results_filename = "../operations/gisaid_results/trimmed_seqs.fasta"
 
@@ -205,9 +205,9 @@ def trim_seqs(filepath: str) -> List:
     result_record = []
 
     for rec in needle_record[1:]: 
-        reference_seq = rec[0]
+        reference_seq = rec[1]
 
-        seq_parser = IdenticalSequencesParser(reference_seq, rec[1])
+        seq_parser = IdenticalSequencesParser(reference_seq, rec[0])
 
         result = seq_parser.highly_identical_seqs()
 
