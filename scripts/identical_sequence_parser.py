@@ -6,6 +6,8 @@ from Bio import AlignIO
 
 from Bio.Seq import Seq
 
+from scipy import chi2_contingency
+
 class IdenticalSequencesParser: 
     """ Match reference sequence to target and calculate identity then write to file
     """

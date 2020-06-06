@@ -139,23 +139,23 @@ def main():
     """
 
     parser = parse_arguments()
-    emboss_out_file = "../operations/gisaid_results/needle.fasta"
-    #translate_genome(str(parser.cov_genome_path))
+    # emboss_out_file = "../operations/gisaid_results/needle.fasta"
+    # #translate_genome(str(parser.cov_genome_path))
     
-    emboss_needle("../operations/gisaid_results/translated.fasta", 
-                    f"{str(parser.uniprot_refseq_path)}", 
-                    emboss_out_file)
-    # Now for the identitiy calculation bit.
-    results_record = identity_calculation(emboss_out_file)
-    results_filename = "../operations/gisaid_results/trimmed_seqs.fasta"
+    # emboss_needle("../operations/gisaid_results/translated.fasta", 
+    #                 f"{str(parser.uniprot_refseq_path)}", 
+    #                 emboss_out_file)
+    # # Now for the identitiy calculation bit.
+    # results_record = identity_calculation(emboss_out_file)
+    # results_filename = "../operations/gisaid_results/trimmed_seqs.fasta"
 
-    if results_record:
-        write_records_to_file(results_record, filename=results_filename)
-        # Run a MAFFT alignment to pad the seqs into equal length
-        mafft("../operations/gisaid_results/trimmed_seqs.fasta")
-    # After this go to variation_parser.
-    else:   
-        print("No hits found")
+    # if results_record:
+    #     write_records_to_file(results_record, filename=results_filename)
+    #     # Run a MAFFT alignment to pad the seqs into equal length
+    mafft("../operations/gisaid_results/trimmed_seqs.fasta")
+    # # After this go to variation_parser.
+    # else:   
+    #     print("No hits found")
 
 
 def translate_genome(genome_path):

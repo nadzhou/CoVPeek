@@ -53,20 +53,21 @@ def main():
     records = load_data(seq_path)
     country_dict = seq_records_for_country(records)
 
-    print('Position 613')
-    var_counts = variation_counts_at_position(country_dict, 613)
+    print('Position 705')
+    print("Country, Variation")
+    var_counts = variation_counts_at_position(country_dict, 705)
     for country, counts in var_counts.items():
-        print(f"country: {country}, \t variations: {dict(counts)}")
+        print(f"{country}, {dict(counts)}")
 
-    print('Position 614')
-    var_counts = variation_counts_at_position(country_dict, 614)
-    for country, counts in var_counts.items():
-        print(f"country: {country}, \t variations: {dict(counts)}")
+    # print('Position 614')
+    # var_counts = variation_counts_at_position(country_dict, 614)
+    # for country, counts in var_counts.items():
+    #     print(f"country: {country}, \t variations: {dict(counts)}")
 
-    print('Position 615')
-    var_counts = variation_counts_at_position(country_dict, 615)
-    for country, counts in var_counts.items():
-        print(f"country: {country}, \t variations: {dict(counts)}")
+    # print('Position 615')
+    # var_counts = variation_counts_at_position(country_dict, 615)
+    # for country, counts in var_counts.items():
+    #     print(f"country: {country}, \t variations: {dict(counts)}")
 
 
 if __name__ == '__main__':
