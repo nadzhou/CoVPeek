@@ -4,11 +4,10 @@ from typing import List, Dict
 import matplotlib.pyplot as plt
 from matplotlib import figure
 import numpy as np
+
 import seaborn as sns
 from Bio import SeqIO
 from collections import Counter
-
-from scipy.stats import chi2_contingency
 
 sns.set()
 
@@ -55,6 +54,7 @@ class DivergenceParser:
 
         return np.asarray(seq, dtype='S1')
 
+
     @staticmethod
     def _normalize_data(ent_list: np.ndarray) -> np.ndarray:
         """ Takes the entropy array and normalizes the data.
@@ -82,7 +82,7 @@ class DivergenceParser:
         aa_count = Counter(array)
         pA = 1
         total_aminoacids = sum(aa_count.values())
-        for aminoacid, count in aa_count.items():
+        for _, count in aa_count.items():
             # and +1 for deletions
             pA *= (count / total_aminoacids)
         return np.sum(pA * np.log2(pA))
@@ -144,7 +144,7 @@ def main():
         Loads the aligned FASTA file, plots the variation score for each AA position,
         prints aminoacids in positions with score > 5, and makes a countplot for position 614
     """
-    aligned_path = "../operations/gisaid_results//aligned.fasta"
+    aligned_path = "aligned_seq.fasta"
     # Call an instance of the class that converts it to ndarray then run through the functions, calculate entropy etc
     parser = DivergenceParser.retrieve_sequence(aligned_path)
     lineplot = parser.plot_variation()
