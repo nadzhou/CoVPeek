@@ -9,3 +9,4 @@ def test_trim_sequences():
     results = trim_sequences(test_file)
     assert results == expected
 
+

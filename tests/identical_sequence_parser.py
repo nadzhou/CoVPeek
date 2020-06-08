@@ -14,6 +14,7 @@ class IdenticalSequencesParser:
     def __init__(self, ref_seq, tar_seq): 
         self.ref_seq = ref_seq
         self.tar_seq = tar_seq
+
         self.ref_seq_len = len(self.ref_seq)
         self.np_seq = self.seqs2np()
         self._highly_identical_seqs = None
@@ -25,7 +26,7 @@ class IdenticalSequencesParser:
             Returns:
                 np array [2d np array]: Np array that turns the chars into bytes
         """
-        return np.asarray((self.ref_seq.seq, self.tar_seq.seq))
+        return np.asarray((self.ref_seq.seq, self.tar_seq), dtype='S1')
 
 
     def aa_hit_calc(self): 
