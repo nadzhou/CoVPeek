@@ -19,7 +19,7 @@ def parse_arguments(parser=None):
     parser.add_argument("uniprot_refseq_path", 
                         help="Path to the UniProt canonical protein")
 
-     parser.add_argument("output_directory", 
+    parser.add_argument("output_directory", 
                         help="An output directory where the code results go.")
                                          
     args = parser.parse_args()

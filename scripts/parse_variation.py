@@ -8,9 +8,29 @@ import numpy as np
 import seaborn as sns
 from Bio import SeqIO
 from collections import Counter
+import argparse as ap
 
 sns.set()
 
+def parse_arguments(parser=None): 
+    """
+        Parser object for genome path, Uniprot, and output directory input. 
+        
+        Args: 
+            parser [argparse]: Input argument. 
+
+        Returns: \
+            args [argparse]: Return the args.
+    """
+    if not parser: 
+        parser = ap.ArgumentParser()
+
+    parser.add_argument("aligned_file_path", 
+                        help="Path to aligned file after operation.")
+                          
+    args = parser.parse_args()
+
+    return args
 
 class DivergenceParser:
     """Parse the globally aligned sequences to look for divergence
@@ -144,7 +164,8 @@ def main():
         Loads the aligned FASTA file, plots the variation score for each AA position,
         prints aminoacids in positions with score > 5, and makes a countplot for position 614
     """
-    aligned_path = "aligned_seq.fasta"
+    parser = parse_arguments()
+    aligned_path = parser.aligned_file_path
     # Call an instance of the class that converts it to ndarray then run through the functions, calculate entropy etc
     parser = DivergenceParser.retrieve_sequence(aligned_path)
     lineplot = parser.plot_variation()

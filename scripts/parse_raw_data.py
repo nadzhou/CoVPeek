@@ -133,8 +133,8 @@ def main():
     translate_genome(parser.cov_genome_path, output_path)
 
     
-    emboss_needle("../operations/gisaid_results/translated.fasta", 
-                    f"{str(parser.uniprot_refseq_path)}", 
+    emboss_needle(output_path/"translated.fasta", 
+                    parser.uniprot_refseq_path, 
                     emboss_out_file)
 
     # Now for the identitiy calculation bit.
@@ -157,7 +157,7 @@ def translate_genome(genome_path, output_path):
     genome_record = list(SeqIO.parse(genome_path, "fasta"))
     # path is relative to scripts folder here, needs to be different in notebooks
 
-    results = extract_dna(genome_record, gisaid_results_path)
+    results = extract_dna(genome_record, output_path)
     with open(output_path/"translated.fasta", "w") as file:
         for record in results:
             SeqIO.write(record, file, "fasta")
