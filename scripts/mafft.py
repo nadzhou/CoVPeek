@@ -1,7 +1,7 @@
 from Bio.Align.Applications import MafftCommandline
 
 
-def mafft(in_file: str):
+def mafft(in_file: str, out_file: str):
     """ MAFFT command line for MSA. 
 
         Args: 
@@ -13,7 +13,7 @@ def mafft(in_file: str):
     stdout, stderr = mafft_cline()
     print(mafft_cline)
 
-    with open("../operations/gisaid_results/aligned.fasta", "w") as file:
+    with open(out_file, "w") as file:
         file.write(stdout)
 
 

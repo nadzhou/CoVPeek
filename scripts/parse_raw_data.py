@@ -8,32 +8,25 @@ from Bio import AlignIO
 import re
 import numpy as np
 from pathlib import Path
-
 from Bio.SeqRecord import SeqRecord
-import argparse as ap
 
 from emboss import emboss_needle
 from mafft import mafft
 from identical_sequence_parser import IdenticalSequencesParser
+from parser import parse_arguments
 
-from dataclasses import astuple, dataclass
-
-def parse_arguments(parser=None): 
-    
-    if not parser: 
-        parser = ap.ArgumentParser()
-
-    parser.add_argument("cov_genome_path", help="Path to the CoV reference genome")
-    parser.add_argument("uniprot_refseq_path", help="Path to the UniProt canonical protein")
-    args = parser.parse_args()
-
-    return args
 
 def remove_non_chars_from_seq(seq: str) -> str: 
     return Seq(re.sub(r'(\W)', '', str(seq)))
 
 def find_patient_country(genome_id): 
     return str((re.findall(f'19/(\w*)/', genome_id))).strip("[]'")
+
+def make_seqrecord(protein, patient_country, i, num): 
+    return SeqRecord(Seq(protein), 
+                    id=f"{num}-{i}-{patient_country}",
+                    name=f"{num}-{i}-{patient_country}",
+                    description=f"{num}-{i}-{patient_country}")
 
 
 def extract_dna(genome_records: List[SeqRecord], out_file_path: Path) -> List[List[SeqRecord]]:
@@ -48,17 +41,12 @@ def extract_dna(genome_records: List[SeqRecord], out_file_path: Path) -> List[Li
         Returns:
             records: Translated ORFs in a list
     """
-    out_file_path.mkdir(parents=True, exist_ok=True)
     records = []
 
     print("Initiating translation...")
 
-    
-    for genome_record, num in zip(genome_records,
-                                  range(len(genome_records) + 1)):
-
+    for num, genome_record in enumerate(genome_records, start=1): 
         genome_record.seq = remove_non_chars_from_seq(genome_record.seq)
-
         saved_records = []
 
         orf_proteins = find_orfs_with_trans(genome_record.seq)
@@ -66,11 +54,11 @@ def extract_dna(genome_records: List[SeqRecord], out_file_path: Path) -> List[Li
 
         print(patient_country)
 
-        for protein, i in zip(orf_proteins, range(len(orf_proteins) + 1)):
-            translated_pt_record = SeqRecord(Seq(protein), 
-                                             id=f"{num}-{i}-{patient_country}",
-                                             name=f"{num}-{i}-{patient_country}",
-                                             description=f"{num}-{i}-{patient_country}")
+        for i, protein in enumerate(orf_proteins, start=1): 
+            translated_pt_record = make_seqrecord(protein, 
+                                                patient_country, 
+                                                i, 
+                                                num)
 
             saved_records.append(translated_pt_record)
 
@@ -92,7 +80,6 @@ def pad_seq(seq: Seq) -> Seq:
     """
     remainder = len(seq) % 3
     return seq if remainder == 0 else seq + 'N' * (3 - remainder)
-
 
 
 def find_orfs_with_trans(seq: Seq, trans_table: int = 1, min_protein_length: int = 100) -> List[str]:
@@ -139,34 +126,39 @@ def main():
     """
 
     parser = parse_arguments()
-    emboss_out_file = "../operations/gisaid_results/needle.fasta"
-    translate_genome(str(parser.cov_genome_path))
+    output_path = Path(parser.output_directory)
+    output_path.mkdir(parents=True, exist_ok=True)
+    
+    emboss_out_file = output_path/"needle.fasta"
+    translate_genome(parser.cov_genome_path, output_path)
+
     
     emboss_needle("../operations/gisaid_results/translated.fasta", 
                     f"{str(parser.uniprot_refseq_path)}", 
                     emboss_out_file)
+
     # Now for the identitiy calculation bit.
     results_record = identity_calculation(emboss_out_file)
-    results_filename = "../operations/gisaid_results/trimmed_seqs.fasta"
+    results_filename = output_path/"trimmed_seqs.fasta"
 
     if results_record:
         write_records_to_file(results_record, filename=results_filename)
         # Run a MAFFT alignment to pad the seqs into equal length
-        mafft("../operations/gisaid_results/trimmed_seqs.fasta")
+        mafft(output_path/"trimmed_seqs.fasta", output_path/"aligned.fasta")
     # # After this go to variation_parser.
     # else:   
     #     print("No hits found")
 
 
-def translate_genome(genome_path):
+def translate_genome(genome_path, output_path):
     """Translate the GISAID genome into ORFs. 
     """
     # unused variable, probably needs to be deleted
     genome_record = list(SeqIO.parse(genome_path, "fasta"))
     # path is relative to scripts folder here, needs to be different in notebooks
-    gisaid_results_path = Path("../operations/gisaid_results/")
+
     results = extract_dna(genome_record, gisaid_results_path)
-    with open(gisaid_results_path / "translated.fasta", "w") as file:
+    with open(output_path/"translated.fasta", "w") as file:
         for record in results:
             SeqIO.write(record, file, "fasta")
 
