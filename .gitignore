@@ -4,6 +4,7 @@
 .pytest_cache
 *.TAG
 __pycache__/
+.venv
 .vscode/
 .vscode
 .idea
@@ -11,3 +12,5 @@ __pycache__/
 *.fasta
 /operation/
 localdata
+
+local-sp.json
