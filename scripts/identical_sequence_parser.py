@@ -14,6 +14,7 @@ class IdenticalSequencesParser:
     def __init__(self, ref_seq, tar_seq): 
         self.ref_seq = ref_seq
         self.tar_seq = tar_seq
+        
         self.ref_seq_len = len(self.ref_seq)
         self.np_seq = self.seqs2np()
         self._highly_identical_seqs = None
@@ -78,7 +79,7 @@ class IdenticalSequencesParser:
         """ Write the sequences that have identity scores greater than 80 percent.
         """
 
-        if self.identity_score > 0.7 and len(self.trimd_tar_seq) > 50:
+        if self.identity_score > 0.7 and len(self.trimd_tar_seq) > 100:
             print(f"hit hit {self.identity_score}")
 
             target_seq_record = SeqRecord(Seq(self.trimd_tar_seq),

@@ -166,7 +166,6 @@ def main():
     """
     parser = parse_arguments()
     aligned_path = parser.aligned_file_path
-    # Call an instance of the class that converts it to ndarray then run through the functions, calculate entropy etc
     parser = DivergenceParser.retrieve_sequence(aligned_path)
     lineplot = parser.plot_variation()
     #plt.show()
