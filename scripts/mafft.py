@@ -19,7 +19,8 @@ def mafft(in_file: str, out_file: str):
 
 def main():
     in_file = "/home/nadzhou/Desktop/results.fasta"
-    mafft(in_file)
+    out_file = "../localdata/mafft_results.fasta"
+    mafft(in_file, out_file)
 
 
 if __name__ == '__main__':

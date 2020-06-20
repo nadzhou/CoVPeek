@@ -1,8 +1,11 @@
+from pathlib import Path
+from typing import Union
+
 from Bio.Emboss.Applications import NeedleallCommandline
 import subprocess
 
 
-def emboss_needle(seq_a_file: str, seq_b_file: str, out_file: str):
+def emboss_needle(seq_a_file: Union[Path, str], seq_b_file: Union[Path, str], out_file: Union[Path, str]):
     """ Do a global pairwise alignment using EMBOSS
 
         Args: 
@@ -14,9 +17,9 @@ def emboss_needle(seq_a_file: str, seq_b_file: str, out_file: str):
             r [subprocess object]: Execute the commandline command for EMBOSS
         
     """
-    needle_cline = NeedleallCommandline(asequence=seq_a_file,
-                                        bsequence=seq_b_file,
-                                        outfile=out_file,
+    needle_cline = NeedleallCommandline(asequence=str(seq_a_file),
+                                        bsequence=str(seq_b_file),
+                                        outfile=str(out_file),
                                         verbose=True,
                                         gapextend=1,
                                         gapopen=10)
