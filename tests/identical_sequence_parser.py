@@ -80,7 +80,7 @@ class IdenticalSequencesParser:
         """
 
         if self.identity_score > 0.7 and len(self.trimd_tar_seq) > 50:
-            print(f"hit hit {self.identity_score}")
+            print(f"hit at {self.identity_score}")
 
             target_seq_record = SeqRecord(Seq(self.trimd_tar_seq),
                                             id=self.tar_seq.id,

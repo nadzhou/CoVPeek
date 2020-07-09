@@ -24,12 +24,12 @@ def main():
     output_path.mkdir(parents=True, exist_ok=True)
 
     translated_file = output_path / "translated.fasta"
-    translate_genome(args.cov_genome_path, translated_file)
+    # translate_genome(args.cov_genome_path, translated_file)
     emboss_out_file = output_path / "needle.fasta"
     # pairwise alignment
-    emboss_needle(translated_file,
-                  args.uniprot_refseq_path,
-                  emboss_out_file)
+    # emboss_needle(translated_file,
+    #               args.uniprot_refseq_path,
+    #               emboss_out_file)
 
     # Now for the identity calculation bit.
     results_record = identity_calculation(emboss_out_file)
@@ -38,8 +38,8 @@ def main():
     if results_record:
         write_records_to_file(results_record, filename=results_filename)
         # Run a MAFFT alignment to pad the seqs into equal length
-        mafft(results_filename, output_path / "aligned.fasta")
-    # # After this go to variation_parser.
+    #     mafft(results_filename, output_path / "aligned.fasta")
+    # # # After this go to variation_parser.
     # else:
     #     print("No hits found")
 
